@@ -37,8 +37,8 @@ export const studyTasks: Record<StudyTaskId, {
     label: '中英对照',
     switchLabel: '中英对照',
     title: '临时中英对照',
-    description: '对照论文的中英文版本，选择与题目中的中文论述含义一致的英文表述。',
-    steps: ['从文件打开中文版和英文版论文，找到对应段落。', '核对两种语言的含义，完成本套两道单选题。'],
+    description: '根据中文论述，在英文论文中找到对应原句，选择与英文原文完全一致的选项。',
+    steps: ['从文件打开中文版和英文版论文，找到对应段落。', '核对英文原句的具体措辞，完成本套两道单选题。'],
     bilingualPrompt:{chinese:'编码器由 N = 6 个相同的层堆栈组成。每一层有两个子层。',english:'The encoder is composed of a stack of N = 6 identical layers. Each layer has two sub-layers.'},
     resources: [
       { id: 'chinese-pdf', title: 'Attention Is All You Need 中文版.pdf', url: attentionRoot + 'Attention-Is-All-You-Need-zh.pdf', kind: 'pdf' },

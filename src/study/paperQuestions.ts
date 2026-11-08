@@ -39,12 +39,12 @@ export const bilingualSetInfo=[
  {title:'位置编码',section:'3.5 Positional Encoding'},
  {title:'训练数据与批处理',section:'5.1 Training Data and Batching'},
 ] as const;
-const bilingualPrompt=(section:string,text:string)=>`对照第 ${section} 节的中英文版本，选择与下面中文论述含义一致的英文表述。\n\n“${text}”`;
+const bilingualPrompt=(section:string,text:string)=>`在英文论文第 ${section} 节中找到下面中文论述对应的原句，选择与英文原文完全一致的选项。\n\n“${text}”`;
 export const bilingualQuestionSets:PaperQuestionSet[]=[
  [
   choice(bilingualPrompt('3.2.2','多头注意力允许模型在不同位置同时关注来自不同表示子空间的信息。'),[
    'Multi-head attention attends to the same representation subspace at every position.',
-   'Multi-head attention jointly attends to different representation subspaces at different positions.',
+   'Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions.',
    'Multi-head attention attends to different representation subspaces at only one position.',
    'Multi-head attention processes each representation subspace without combining information.',
   ],'B'),
@@ -52,12 +52,12 @@ export const bilingualQuestionSets:PaperQuestionSet[]=[
    'The transformations use different parameters at each position and share parameters across layers.',
    'The transformations share parameters across both positions and layers.',
    'The transformations use different parameters across both positions and layers.',
-   'The transformations are the same across positions but use different parameters across layers.',
+   'While the linear transformations are the same across different positions, they use different parameters from layer to layer.',
   ],'D'),
  ],
  [
   choice(bilingualPrompt('3.5','为此，我们在编码器和解码器堆栈底部的输入嵌入中添加了“位置编码”。'),[
-   'Positional encodings are added to input embeddings at the bottoms of both stacks.',
+   'To this end, we add "positional encodings" to the input embeddings at the bottoms of the encoder and decoder stacks.',
    'Positional encodings replace input embeddings at the bottoms of both stacks.',
    'Positional encodings are added to output features at the tops of both stacks.',
    'Positional encodings are added to input embeddings only in the encoder stack.',
@@ -65,14 +65,14 @@ export const bilingualQuestionSets:PaperQuestionSet[]=[
   choice(bilingualPrompt('3.5','我们选择正弦版本是因为它可能允许模型推广到训练中遇到的序列长度之外的序列长度。'),[
    'The sinusoidal version guarantees correct predictions for sequences of any length.',
    'The sinusoidal version limits the model to sequence lengths encountered during training.',
-   'The sinusoidal version may let the model generalize to sequences longer than those seen during training.',
+   'We chose the sinusoidal version because it may allow the model to extrapolate to sequence lengths longer than the ones encountered during training.',
    'The sinusoidal version was chosen because it removes the need to train on sequences.',
   ],'C'),
  ],
  [
   choice(bilingualPrompt('5.1','我们在标准 WMT 2014 英语—德语数据集上训练，该数据集包含约 450 万个句子对。'),[
    'Training used the WMT 2014 English-French dataset with about 4.5 million sentence pairs.',
-   'Training used the WMT 2014 English-German dataset with about 4.5 million sentence pairs.',
+   'We trained on the standard WMT 2014 English-German dataset consisting of about 4.5 million sentence pairs.',
    'Training used the WMT 2014 English-German dataset with about 4.5 million individual tokens.',
    'Training used the WMT 2014 English-German dataset with about 36 million sentence pairs.',
   ],'B'),
@@ -80,7 +80,7 @@ export const bilingualQuestionSets:PaperQuestionSet[]=[
    'Each batch contained about 25,000 sentence pairs, regardless of their token counts.',
    'Each batch contained about 25,000 tokens in total across source and target sequences.',
    'Each sentence pair contained about 25,000 source tokens and 25,000 target tokens.',
-   'Each batch contained sentence pairs totaling about 25,000 source tokens and 25,000 target tokens.',
+   'Each training batch contained a set of sentence pairs containing approximately 25000 source tokens and 25000 target tokens.',
   ],'D'),
  ],
 ];
@@ -143,7 +143,7 @@ function load():QuestionSets{
   const count=Math.max(stored.length,prepared.length);
   const sets=Array.from({length:count},(_,index)=>{
    const pair=stored[index],defaults=prepared[index];
-   return [0,1].map(item=>pair?.[item]===undefined||typeof pair[item]==='string'&&!pair[item].trim()||task==='bilingual'&&typeof pair[item]==='string'&&pair[item].includes('对应的完整英文句子，并复制到答题框')?defaults?.[item]??'':normalizeQuestion(pair[item])) as PaperQuestionSet;
+   return [0,1].map(item=>task==='bilingual'&&isChoiceQuestion(pair?.[item])&&questionPrompt(pair[item]).includes('选择与下面中文论述含义一致的英文表述')?defaults?.[item]??'':pair?.[item]===undefined||typeof pair[item]==='string'&&!pair[item].trim()||task==='bilingual'&&typeof pair[item]==='string'&&pair[item].includes('对应的完整英文句子，并复制到答题框')?defaults?.[item]??'':normalizeQuestion(pair[item])) as PaperQuestionSet;
   });
   return [task,sets];
  })) as QuestionSets;
