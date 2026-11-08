@@ -165,3 +165,12 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #638b9c;out
 .study-pdf-text-layer>:not(.markedContent),.study-pdf-text-layer .markedContent span:not(.markedContent){--font-height:0;--scale-x:1;--rotate:0deg;font-size:calc(var(--text-scale-factor) * var(--font-height));transform:rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));}
 .study-pdf-text-layer .markedContent{display:contents;}
 .study-pdf-text-layer ::selection{background:#92b8c861;}
+
+.study-choice-options{display:grid;gap:8px;margin:12px 0 4px;}
+.study-choice-options label{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border:1px solid #dfe7ec;border-radius:10px;background:#fff;color:#3e5663;font-size:12px;line-height:1.6;cursor:pointer;}
+.study-choice-options label.selected{border-color:#9bbbc6;background:#f1f8fa;}
+.study-choice-options input{margin:3px 0 0;accent-color:#729cab;}
+.experiment-question-editor{display:grid;gap:8px;}
+.experiment-choice-editor{display:grid;gap:6px;padding:0 2px 4px;}
+.experiment-choice-editor label{display:flex;align-items:center;gap:8px;}
+.experiment-choice-editor input,.experiment-choice-editor select{box-sizing:border-box;min-width:0;flex:1;padding:6px 8px;border:1px solid #d5e0e7;border-radius:7px;background:#fff;color:#344b58;font:inherit;}

@@ -15,5 +15,8 @@ try{
  assert.deepEqual(actual.eligibility,expected);
  assert.deepEqual(actual.sequence,['standard','screenshot','figure-pin']);
  assert.equal(actual.participants[0].files.task1,'parallel');
+ const questions=await page.evaluate(async()=>{const m=await import('/src/study/paperQuestions.ts');return Object.values(m.paperQuestionStore.get().sets);});
+ assert.equal(questions.length,4);
+ for(const sets of questions){assert.equal(sets.length,3);for(const set of sets){assert.equal(set.length,2);for(const question of set){assert.equal(question.kind,'choice');assert.equal(question.options.length,4);assert.ok(['A','B','C','D'].includes(question.answer));}}}
  console.log('PASS: exported fixed configuration overrides old browser choices; assignment controls are absent');
 }finally{await browser.close();}
