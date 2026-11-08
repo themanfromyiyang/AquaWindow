@@ -1,0 +1,40 @@
+{
+  "eligibility": {
+    "paper": {
+      "comparison": [
+        "standard",
+        "screenshot",
+        "figure-pin"
+      ],
+      "bilingual": [
+        "standard",
+        "fusion",
+        "sync-scroll"
+      ],
+      "external": [
+        "standard",
+        "reveal",
+        "capsule"
+      ],
+      "answer": [
+        "standard",
+        "fusion",
+        "screenshot"
+      ]
+    },
+    "files": {
+      "task1": [
+        "parallel",
+        "primary-secondary"
+      ],
+      "task2": [
+        "parallel",
+        "primary-secondary"
+      ],
+      "task3": [
+        "parallel",
+        "primary-secondary"
+      ]
+    }
+  }
+}
