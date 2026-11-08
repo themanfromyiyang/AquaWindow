@@ -84,3 +84,5 @@ export function ensureAssignment(studentId:string,name=''){
  const assignment:ParticipantAssignment={slotId:`slot-${group}`,studentId:id,name:name.trim(),pending:false,group,...assignmentForGroup(group,eligibility),createdAt:new Date().toISOString()};
  save([...participants,assignment]);return assignment;
 }
+
+export function clearParticipantAssignments(){save(Array.from({length:plannedParticipantCount},(_,index)=>makePendingSlot(index+1,assignmentStore.get().eligibility)));}

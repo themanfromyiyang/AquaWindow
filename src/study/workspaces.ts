@@ -29,6 +29,14 @@ let desktopSnapshot:KernelState|undefined;
 let desktopAgent=false;
 let desktopTask=studyTaskStore.get().current,experimentTask=studyTaskStore.get().current;
 let experimentEnvironment:StudyEnvironment='paper';
+export function resetStudyWorkspaces(){
+ delete snapshots.paper;
+ delete snapshots.files;
+ paperMode=null;
+ experimentTask='comparison';
+ experimentEnvironment='paper';
+ studyTaskStore.set({current:'comparison'});
+}
 export function restoreStudyWorkspace(state:KernelState){
  const experiment=kernel.list().find(win=>win.appId==='experiment');
  const windows={...state.windows},order=state.order.filter(id=>windows[id]?.appId!=='experiment');

@@ -1,3 +1,4 @@
+import {surveyStore,surveyScale,surveyQuestions,susQuestionCount} from './survey';
 import {createStore} from '../system/createStore';
 import {kernel} from '../system/kernel';
 import {studyTasks,switchStudyTask,type StudyTaskId} from './tasks';
@@ -12,7 +13,7 @@ export const paperLevels=Object.keys(studyTasks) as StudyTaskId[];
 export type ExperimentRecord={participant:string;environment:StudyEnvironment;stage:number;task:string;technique:string|null;seconds:number;selfReported:boolean;events:unknown[];questionSet?:number;questionIndex?:number;prompt?:string;response?:string;correct?:boolean};
 const recordsKey='aquawindow.experiment.records.v1';
 function savedRecords():ExperimentRecord[]{try{const value=JSON.parse(localStorage.getItem(recordsKey)??'[]');return Array.isArray(value)?value:[]}catch{return []}}
-export const experimentFlow=createStore({view:'hub' as 'hub'|'level'|'complete',levels:{paper:0,files:0},paperRound:0,paperItem:0,stageRunning:false,startedAt:0,logStart:0,records:savedRecords()});
+export const experimentFlow=createStore({view:'hub' as 'hub'|'level'|'complete'|'survey',levels:{paper:0,files:0},paperRound:0,paperItem:0,stageRunning:false,startedAt:0,logStart:0,records:savedRecords()});
 function participantGroup(){return onboarding.get().testMode?1:(assignmentFor(onboarding.get().studentId)??ensureAssignment(onboarding.get().studentId,onboarding.get().name))?.group??1;}
 export function currentPaperCondition(){
  const state=experimentFlow.get(),task=paperLevels[state.levels.paper],group=participantGroup();
@@ -88,7 +89,7 @@ export function finishLevel(selfReported=true){
  if(!canEnterExperiment())return;
  const state=experimentFlow.get(),index=state.levels.files;
  if(state.view!=='level'||!fileTaskStore.get().submitted)return;
- const record:ExperimentRecord={participant:onboarding.get().studentId,environment:'files',stage:index+1,task:fileTaskStore.get().current,technique:fileTaskStore.get().mode,seconds:fileTaskStore.get().results.at(-1)?.seconds??0,selfReported,events:logStore.get().records.filter(event=>event.t>=state.startedAt)};
+ const record:ExperimentRecord={participant:onboarding.get().studentId,environment:'files',stage:index+1,task:fileTaskStore.get().current,technique:fileTaskStore.get().layoutMode,seconds:fileTaskStore.get().results.at(-1)?.seconds??0,selfReported,events:logStore.get().records.filter(event=>event.t>=state.startedAt)};
  const count=fileTasks.length,records=onboarding.get().testMode?state.records:[...state.records,record];
  experimentFlow.set({stageRunning:false,records,levels:{...state.levels,files:index+1},view:index+1>=count?'complete':'level',startedAt:performance.now(),logStart:logStore.get().records.length});
  if(!onboarding.get().testMode)localStorage.setItem(recordsKey,JSON.stringify(records));
@@ -97,7 +98,7 @@ export function finishLevel(selfReported=true){
 }
 export function exportExperiment(){
  const enrollment=onboarding.get();
- const payload={version:4,participant:enrollment.studentId,participantInfo:{name:enrollment.name,studentId:enrollment.studentId},assignment:assignmentFor(enrollment.studentId),eligibility:assignmentStore.get().eligibility,learningResults:learningHistory.get().byParticipant[enrollment.studentId]??enrollment.records,learningSkip:learningHistory.get().skips[enrollment.studentId]??null,stages:experimentFlow.get().records.filter(record=>record.participant===enrollment.studentId),fileResults:fileTaskStore.get().results.filter(result=>result.participant===enrollment.studentId)};
+ const payload={version:5,surveyDefinition:{scale:surveyScale,susQuestionCount,questions:surveyQuestions},surveys:surveyStore.get().responses.filter(response=>response.participant===enrollment.studentId),participant:enrollment.studentId,participantInfo:{name:enrollment.name,studentId:enrollment.studentId},assignment:assignmentFor(enrollment.studentId),eligibility:assignmentStore.get().eligibility,learningResults:learningHistory.get().byParticipant[enrollment.studentId]??enrollment.records,learningSkip:learningHistory.get().skips[enrollment.studentId]??null,stages:experimentFlow.get().records.filter(record=>record.participant===enrollment.studentId),fileResults:fileTaskStore.get().results.filter(result=>result.participant===enrollment.studentId)};
  const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'})),link=document.createElement('a');
  link.href=url;link.download='aquawindow-experiment.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
