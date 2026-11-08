@@ -200,3 +200,14 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #638b9c;out
 .experiment-clear-data [role="group"]>div{display:flex;gap:8px;}
 .experiment-clear-data [role="group"] button{padding:7px 11px;border:1px solid #d8e3e8;border-radius:8px;background:#fff;color:#4d6774;font-size:11px;}
 .experiment-clear-data [role="group"] button.confirm{background:#e5eff2;}
+.experiment-participant-list{display:grid;gap:12px;}
+.experiment-participant-data{border:1px solid #e1e8ed;border-radius:12px;background:#fff;overflow:hidden;}
+.experiment-participant-data>summary{padding:15px 16px;cursor:pointer;color:#405d6b;}
+.experiment-participant-data>summary strong{font-size:13px;overflow-wrap:anywhere;}
+.experiment-participant-data>summary span{display:block;margin:6px 0 0 16px;color:#7b8e99;font-size:11px;}
+.experiment-participant-body{padding:4px 14px 16px;border-top:1px solid #edf1f4;}
+.experiment-survey-detail{font-size:11px;white-space:normal;}
+.experiment-survey-detail summary{cursor:pointer;}
+.experiment-survey-detail ol{min-width:240px;padding-left:20px;}
+.experiment-survey-detail li{margin:8px 0;line-height:1.6;}
+.experiment-survey-detail strong{display:block;font-weight:500;color:#527889;}
