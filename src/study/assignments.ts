@@ -21,7 +21,7 @@ const storageKey='aquawindow.experiment.assignments.v1';
 
 export const paperTaskIds=Object.keys(studyTasks) as StudyTaskId[];
 export const fileTaskIds=STUDY_TASKS.map(task=>task.id);
-export const plannedParticipantCount=paperTaskIds.length+fileTaskIds.length;
+export const plannedParticipantCount=3;
 export const paperModeOptions=[{id:'standard' as const,label:'普通窗口'},...studyInteractionModes];
 export type Eligibility={paper:Record<StudyTaskId,AssignedPaperMode[]>;files:Record<FileTaskId,FileLayoutMode[]>};
 const rotation=(group:number,taskIndex:number,count:number)=>(group-1+taskIndex)%count;
