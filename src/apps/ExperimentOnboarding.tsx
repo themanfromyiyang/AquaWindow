@@ -2,7 +2,7 @@ import {useEffect,useState} from 'react';
 import {useStore} from '../system/createStore';
 import {ui} from '../system/ui';
 import {openStudyResource} from './StudyMaterials';
-import {onboarding,registerParticipant,skipParticipantInfo,learningQuestions,startLearningTest,submitLearning,sampleLearning,clearLearningWindows,setupLearningQuestion,skipLearningTest} from '../study/onboarding';
+import {onboarding,rememberParticipantInfo,registerParticipant,skipParticipantInfo,learningQuestions,startLearningTest,submitLearning,sampleLearning,clearLearningWindows,setupLearningQuestion,skipLearningTest} from '../study/onboarding';
 import {studyInteractionModes,type StudyInteractionModeId} from '../study/interactionModes';
 import {selectStudyMode} from '../study/conditions';
 
@@ -12,8 +12,8 @@ export default function ExperimentOnboarding({onOpenManager}:{onOpenManager:()=>
  useEffect(()=>{setAnswer('');setMessage('');},[state.question,state.stage]);
  useEffect(()=>{if(state.stage!=='assessment')return;const timer=setInterval(sampleLearning,100);return()=>clearInterval(timer);},[state.stage]);
  if(state.stage==='profile')return <div className="experiment-app experiment-profile-screen"><h1>参与者信息</h1><form className="experiment-profile" onSubmit={event=>{event.preventDefault();registerParticipant(name,studentId);}}>
-  <label>姓名<input aria-label="姓名" required autoComplete="off" value={name} onChange={event=>setName(event.target.value)}/></label>
-  <label>学号<input aria-label="学号" required autoComplete="off" value={studentId} onChange={event=>setStudentId(event.target.value)}/></label>
+  <label>姓名<input aria-label="姓名" required autoComplete="off" value={name} onChange={event=>{setName(event.target.value);rememberParticipantInfo(event.target.value,studentId);}}/></label>
+  <label>学号<input aria-label="学号" required autoComplete="off" value={studentId} onChange={event=>{setStudentId(event.target.value);rememberParticipantInfo(name,event.target.value);}}/></label>
   <button className="experiment-primary" disabled={!name.trim()||!studentId.trim()}>进入教学</button>
   <button className="experiment-skip-test" type="button" onClick={skipParticipantInfo}>跳过信息录入（测试）</button>
   </form><button className="experiment-skip-test" type="button" onClick={onOpenManager}>实验管理</button></div>;

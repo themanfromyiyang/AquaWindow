@@ -1,4 +1,5 @@
 import {surveyStore,surveyScale,surveyQuestions,susQuestionCount} from './survey';
+import {arrangePaperWindows} from './paperWindowLayout';
 import {createStore} from '../system/createStore';
 import {kernel} from '../system/kernel';
 import {studyTasks,switchStudyTask,type StudyTaskId} from './tasks';
@@ -10,10 +11,10 @@ import {onboarding,canEnterExperiment,learningHistory} from './onboarding';
 import {assignmentFor,assignmentStore,ensureAssignment,paperSequence,paperSetIndex} from './assignments';
 import {isChoiceQuestion,questionPrompt,paperQuestionSet,paperTaskReady,questionsPerSet} from './paperQuestions';
 export const paperLevels=Object.keys(studyTasks) as StudyTaskId[];
-export type ExperimentRecord={participant:string;environment:StudyEnvironment;stage:number;task:string;technique:string|null;seconds:number;selfReported:boolean;events:unknown[];questionSet?:number;questionIndex?:number;prompt?:string;response?:string;correct?:boolean};
+export type ExperimentRecord={participant:string;environment:StudyEnvironment;stage:number;task:string;technique:string|null;seconds:number;selfReported:boolean;events:unknown[];questionSet?:number;questionIndex?:number;prompt?:string;response?:string;correct?:boolean;revisions?:{previousResponse:string;response:string;previousCorrect?:boolean;correct?:boolean;at:string}[]};
 const recordsKey='aquawindow.experiment.records.v1';
 function savedRecords():ExperimentRecord[]{try{const value=JSON.parse(localStorage.getItem(recordsKey)??'[]');return Array.isArray(value)?value:[]}catch{return []}}
-export const experimentFlow=createStore({view:'hub' as 'hub'|'level'|'complete'|'survey',levels:{paper:0,files:0},paperRound:0,paperItem:0,stageRunning:false,startedAt:0,logStart:0,records:savedRecords()});
+export const experimentFlow=createStore({view:'hub' as 'hub'|'level'|'complete'|'survey',levels:{paper:0,files:0},paperRound:0,paperItem:0,stageRunning:false,startedAt:0,logStart:0,records:savedRecords(),paperDrafts:{} as Record<string,string>});
 function participantGroup(){return onboarding.get().testMode?1:(assignmentFor(onboarding.get().studentId)??ensureAssignment(onboarding.get().studentId,onboarding.get().name))?.group??1;}
 export function currentPaperCondition(){
  const state=experimentFlow.get(),task=paperLevels[state.levels.paper],group=participantGroup();
@@ -21,6 +22,26 @@ export function currentPaperCondition(){
  const order=paperSequence(task,group),mode=order[state.paperRound];
  if(!mode)return null;
  return {task,mode,order,round:state.paperRound,item:state.paperItem,setIndex:paperSetIndex(task,mode,group),question:paperQuestionSet(task,paperSetIndex(task,mode,group))[state.paperItem],prompt:questionPrompt(paperQuestionSet(task,paperSetIndex(task,mode,group))[state.paperItem])};
+}
+function paperDraftKey(){const c=currentPaperCondition();return c?JSON.stringify([onboarding.get().studentId,c.task,c.mode,c.setIndex,c.item]):'';}
+export function currentPaperRecord(){
+ const c=currentPaperCondition();
+ return c?experimentFlow.get().records.find(r=>r.participant===onboarding.get().studentId&&r.environment==='paper'&&r.task===c.task&&r.technique===c.mode&&r.questionSet===c.setIndex&&r.questionIndex===c.item):undefined;
+}
+export function currentPaperResponse(){return experimentFlow.get().paperDrafts[paperDraftKey()]??currentPaperRecord()?.response??'';}
+export function savePaperDraft(response:string){const key=paperDraftKey();if(key)experimentFlow.set({paperDrafts:{...experimentFlow.get().paperDrafts,[key]:response}});}
+export function previousPaperQuestion(){
+ if(!canEnterExperiment()||ui.get().studyEnvironment!=='paper')return;
+ const state=experimentFlow.get();let index=state.levels.paper,round=state.paperRound,item=state.paperItem;
+ if(index>=paperLevels.length){index=paperLevels.length-1;round=paperSequence(paperLevels[index],participantGroup()).length-1;item=questionsPerSet-1;}
+ else if(item>0)item--;
+ else if(round>0){round--;item=questionsPerSet-1;}
+ else if(index>0){index--;round=paperSequence(paperLevels[index],participantGroup()).length-1;item=questionsPerSet-1;}
+ else return;
+ switchStudyTask(paperLevels[index]);
+ experimentFlow.set({view:'level',levels:{...state.levels,paper:index},paperRound:round,paperItem:item,stageRunning:true,startedAt:performance.now(),logStart:logStore.get().records.length});
+ applyAssignedMode('paper',index);
+ arrangePaperWindows();
 }
 export function activateParticipant(studentId:string){
  const records=experimentFlow.get().records.filter(record=>record.participant===studentId);
@@ -74,15 +95,18 @@ export function finishPaperQuestion(response=''){
  if(!onboarding.get().testMode&&!paperTaskReady(condition.task,condition.order.length))return;
  if(isChoiceQuestion(condition.question)&&!['A','B','C','D'].includes(response.trim()))return;
  const record:ExperimentRecord={participant:onboarding.get().studentId,environment:'paper',stage:state.levels.paper+1,task:condition.task,technique:condition.mode,questionSet:condition.setIndex,questionIndex:condition.item,prompt:condition.prompt,response:response.trim(),correct:isChoiceQuestion(condition.question)?response.trim()===condition.question.answer:undefined,seconds:+((performance.now()-state.startedAt)/1000).toFixed(2),selfReported:true,events:logStore.get().records.filter(event=>event.t>=state.startedAt)};
- const records=onboarding.get().testMode?state.records:[...state.records,record];
+ const existing=currentPaperRecord();
+ if(existing&&!onboarding.get().testMode)revisePaperAnswer(existing,response);
+ savePaperDraft(response);
+ const records=onboarding.get().testMode?state.records:existing?experimentFlow.get().records:[...state.records,record];
  if(!onboarding.get().testMode)localStorage.setItem(recordsKey,JSON.stringify(records));
  log({src:'study',type:'question.complete',data:{task:condition.task,technique:condition.mode,questionSet:condition.setIndex,questionIndex:condition.item,seconds:record.seconds}});
- if(condition.item+1<questionsPerSet){experimentFlow.set({records,paperItem:condition.item+1,startedAt:performance.now(),logStart:logStore.get().records.length});return;}
+ if(condition.item+1<questionsPerSet){experimentFlow.set({records,paperItem:condition.item+1,startedAt:performance.now(),logStart:logStore.get().records.length});arrangePaperWindows();return;}
+ if(condition.round+1<condition.order.length){experimentFlow.set({records,paperRound:condition.round+1,paperItem:0,stageRunning:false,startedAt:performance.now(),logStart:logStore.get().records.length});applyAssignedMode('paper',state.levels.paper);arrangePaperWindows();if(currentPaperRecord()||currentPaperResponse())experimentFlow.set({stageRunning:true});return;}
  for(const win of kernel.list())if(win.appId!=='experiment')kernel.close(win.id,'system');
- if(condition.round+1<condition.order.length){experimentFlow.set({records,paperRound:condition.round+1,paperItem:0,stageRunning:false,startedAt:performance.now(),logStart:logStore.get().records.length});applyAssignedMode('paper',state.levels.paper);return;}
  const next=state.levels.paper+1,view=next>=paperLevels.length?'complete':'level';
  experimentFlow.set({records,levels:{...state.levels,paper:next},paperRound:0,paperItem:0,stageRunning:false,view,startedAt:performance.now(),logStart:logStore.get().records.length});
- if(next<paperLevels.length){switchStudyTask(paperLevels[next]);applyAssignedMode('paper',next);}
+ if(next<paperLevels.length){switchStudyTask(paperLevels[next]);applyAssignedMode('paper',next);if(currentPaperRecord()||currentPaperResponse())experimentFlow.set({stageRunning:true});}
 }
 export function finishLevel(selfReported=true){
  if(ui.get().studyEnvironment==='paper'){finishPaperQuestion();return;}
@@ -101,4 +125,19 @@ export function exportExperiment(){
  const payload={version:5,surveyDefinition:{scale:surveyScale,susQuestionCount,questions:surveyQuestions},surveys:surveyStore.get().responses.filter(response=>response.participant===enrollment.studentId),participant:enrollment.studentId,participantInfo:{name:enrollment.name,studentId:enrollment.studentId},assignment:assignmentFor(enrollment.studentId),eligibility:assignmentStore.get().eligibility,learningResults:learningHistory.get().byParticipant[enrollment.studentId]??enrollment.records,learningSkip:learningHistory.get().skips[enrollment.studentId]??null,stages:experimentFlow.get().records.filter(record=>record.participant===enrollment.studentId),fileResults:fileTaskStore.get().results.filter(result=>result.participant===enrollment.studentId)};
  const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'})),link=document.createElement('a');
  link.href=url;link.download='aquawindow-experiment.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+export function revisePaperAnswer(record:ExperimentRecord,response:string){
+ if(!canEnterExperiment()||record.participant!==onboarding.get().studentId||record.environment!=='paper')return false;
+ const records=experimentFlow.get().records,index=records.indexOf(record);
+ if(index<0||!paperLevels.includes(record.task as StudyTaskId))return false;
+ const question=paperQuestionSet(record.task as StudyTaskId,record.questionSet??0)[record.questionIndex??0];
+ if(!question||isChoiceQuestion(question)&&!['A','B','C','D'].includes(response))return false;
+ if(record.response===response)return true;
+ const correct=isChoiceQuestion(question)?response===question.answer:undefined;
+ const updated=[...records];
+ updated[index]={...record,response,correct,revisions:[...(record.revisions??[]),{previousResponse:record.response??'',response,previousCorrect:record.correct,correct,at:new Date().toISOString()}]};
+ localStorage.setItem(recordsKey,JSON.stringify(updated));
+ experimentFlow.set({records:updated});
+ return true;
 }

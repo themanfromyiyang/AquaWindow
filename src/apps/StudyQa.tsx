@@ -21,8 +21,12 @@ export function copyStudyQaState(sourceId:string,copyId:string){
 
 export default function StudyQa({windowId,example}:{windowId:string;example?:StudyAnswerExample}){
   const [messages,setMessages]=useState<Message[]>(()=>qaState.get(windowId)?.messages??(example&&!example.requireImage?[
-    {role:'user',text:example.question,attachments:[]},
+    {role:'user',text:example.question,attachments:example.image?[example.image]:[]},
     {role:'assistant',text:'',sentences:example.sentences,attachments:[]},
+    ...(example.followUps??[]).flatMap(turn=>[
+      {role:'user' as const,text:turn.question,attachments:[]},
+      {role:'assistant' as const,text:'',sentences:turn.sentences,attachments:[]},
+    ]),
   ]:[]));
   const [draft,setDraft]=useState(()=>qaState.get(windowId)?.draft??(example?.requireImage?example.question:''));
   const [pending,setPending]=useState<Attachment[]>(()=>qaState.get(windowId)?.pending??[]);

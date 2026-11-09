@@ -38,7 +38,7 @@ export const surveyStore=createStore<{responses:SurveyResponse[]}>({responses:lo
 export function surveyTargets(records:ExperimentRecord[],participant:string,completed:StudyEnvironment[]):SurveyTarget[]{
  const seen=new Set<string>(),targets:SurveyTarget[]=[];
  for(const record of records){
-  if(record.participant!==participant||!completed.includes(record.environment)||!record.technique)continue;
+  if(record.participant!==participant||!completed.includes(record.environment)||!record.technique||record.technique==='standard')continue;
   const key=`${record.environment}:${record.technique}`;
   if(seen.has(key))continue;
   const label=record.environment==='paper'?paperModeOptions.find(mode=>mode.id===record.technique)?.label:fileLayoutModes.find(mode=>mode.id===record.technique)?.label;

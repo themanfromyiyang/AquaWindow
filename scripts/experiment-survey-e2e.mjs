@@ -22,6 +22,8 @@ try{
  });
  assert.match(await page.locator('.experiment-survey').innerText(),/掀角查看/);
  assert.equal(await page.locator('.experiment-survey-item').count(),14);
+ const rows=await page.locator('.experiment-survey-item').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {x:r.x,top:r.top,bottom:r.bottom};}));
+ assert.ok(rows.every((row,index)=>row.x===rows[0].x&&(index===0||row.top>=rows[index-1].bottom)));
  assert.equal(await page.getByRole('button',{name:'提交本形式'}).isDisabled(),true);
  await page.locator('.experiment-survey-item').first().locator('label').nth(3).click();
  await page.getByRole('button',{name:'返回实验'}).click();

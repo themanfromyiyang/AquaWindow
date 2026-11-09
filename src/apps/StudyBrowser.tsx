@@ -6,6 +6,13 @@ import {DesktopAppIcon} from '../shell/DesktopAppIcon';
 const root=`${import.meta.env.BASE_URL}study/attention-zh/`;
 const pages=[
   {
+    id:'transformer-video',
+    site:'www.bilibili.com/video/BV1TZ421j7Ke/',
+    title:'直观解释注意力机制，Transformer 的核心 · 3Blue1Brown 官方双语',
+    url:'https://player.bilibili.com/player.html?bvid=BV1TZ421j7Ke&autoplay=0&danmaku=0',
+    keywords:'transformer 原理 讲解 视频 注意力 多头 b站 bilibili 3blue1brown BV1TZ421j7Ke',
+  },
+  {
     id:'google-research',
     site:'research.google',
     title:'Transformer: A Novel Neural Network Architecture for Language Understanding · Google Research',
@@ -51,6 +58,12 @@ export default function StudyBrowser({windowId}:{windowId:string}){
   const search=(event:FormEvent)=>{
     event.preventDefault();
     detach.current?.();setForward(null);
+    if(/^(?:https?:\/\/)?(?:www\.)?bilibili\.com\/video\/BV1TZ421j7Ke\/?(?:[?#].*)?$/i.test(draft.trim())){
+      const page=pages.find(item=>item.id==='transformer-video')!;
+      setQuery('Transformer 讲解视频');setSelected(page);
+      browserState.set(windowId,{draft:draft.trim(),query:'Transformer 讲解视频',selectedId:page.id,scroll:0});
+      return;
+    }
     if(/^(?:https?:\/\/)?(?:www\.)?arxiv\.org\/(?:abs|pdf)\/1706\.03762(?:v\d+)?(?:\.pdf)?\/?(?:[?#].*)?$/i.test(draft.trim())){
       const page=pages.find(item=>item.id==='arxiv')!;
       setQuery('Attention Is All You Need arXiv');setSelected(page);
@@ -74,10 +87,13 @@ export default function StudyBrowser({windowId}:{windowId:string}){
     <form className="study-browser-bar" onSubmit={search}>
       <button className="browser-nav" type="button" aria-label="后退" disabled={!selected} onClick={back}><img src={`${import.meta.env.BASE_URL}harmony/back.svg`} alt=""/></button>
       <button className="browser-nav" type="button" aria-label="前进" disabled={!forward} onClick={ahead}><img src={`${import.meta.env.BASE_URL}harmony/forward.svg`} alt=""/></button>
-      <div className="browser-address"><img className="browser-address-mark" src={`${import.meta.env.BASE_URL}harmony/search.svg`} alt=""/><input aria-label="搜索网页" value={draft} onChange={event=>setDraft(event.target.value)} placeholder="搜索或输入网址"/>{selected&&<span className="browser-offline">离线副本</span>}</div>
+      <div className="browser-address"><img className="browser-address-mark" src={`${import.meta.env.BASE_URL}harmony/search.svg`} alt=""/><input aria-label="搜索网页" value={draft} onChange={event=>setDraft(event.target.value)} placeholder="搜索或输入网址"/>{selected&&selected.id!=='transformer-video'&&<span className="browser-offline">离线副本</span>}</div>
       <button className="browser-search" type="submit" aria-label="搜索">↵</button>
     </form>
-    {selected?<iframe ref={frameRef} key={selected.id} src={selected.url} title={selected.title} sandbox="allow-same-origin" referrerPolicy="no-referrer" onLoad={event=>onFrameLoad(event.currentTarget)}/>:<div className="study-browser-results">
+    {selected?.id==='transformer-video'?<>
+      <div className="study-video-source"><span>{selected.title}</span><a href={'https://'+selected.site} target="_blank" rel="noopener noreferrer">在 B 站打开</a></div>
+      <iframe key={selected.id} src={selected.url} title={selected.title} sandbox="allow-scripts allow-same-origin allow-presentation allow-popups" allow="fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"/>
+    </>:selected?<iframe ref={frameRef} key={selected.id} src={selected.url} title={selected.title} sandbox="allow-same-origin" referrerPolicy="no-referrer" onLoad={event=>onFrameLoad(event.currentTarget)}/>:<div className="study-browser-results">
       {!query?<div className="study-browser-empty"><DesktopAppIcon id="browser"/></div>:results.length?results.map(page=><button type="button" key={page.id} onClick={()=>open(page)}><small>{page.site}</small><strong>{page.title}</strong></button>):<p className="study-browser-no-results">没有找到与“{query}”匹配的网页。</p>}
     </div>}
   </div>;

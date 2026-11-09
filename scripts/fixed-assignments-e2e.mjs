@@ -17,6 +17,8 @@ try{
  assert.equal(actual.participants[0].files.task1,'parallel');
  const questions=await page.evaluate(async()=>{const m=await import('/src/study/paperQuestions.ts');return Object.values(m.paperQuestionStore.get().sets);});
  assert.equal(questions.length,4);
- for(const sets of questions){assert.equal(sets.length,3);for(const set of sets){assert.equal(set.length,2);for(const question of set){assert.equal(question.kind,'choice');assert.equal(question.options.length,4);assert.ok(['A','B','C','D'].includes(question.answer));}}}
+ for(const sets of questions){assert.equal(sets.length,3);for(const set of sets){assert.equal(set.length,1);for(const question of set){assert.equal(question.kind,'choice');assert.equal(question.options.length,4);assert.ok(['A','B','C','D'].includes(question.answer));}}}
+ const next=await page.evaluate(async()=>{const o=await import('/src/study/onboarding.ts'),f=await import('/src/study/flow.ts');o.onboarding.set({stage:'ready',testMode:true});f.chooseExperiment('paper');f.beginPaperLevel();f.finishPaperQuestion('A');return f.experimentFlow.get();});
+ assert.equal(next.paperRound,1);assert.equal(next.paperItem,0);
  console.log('PASS: exported fixed configuration overrides old browser choices; assignment controls are absent');
 }finally{await browser.close();}

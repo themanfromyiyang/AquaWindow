@@ -25,7 +25,16 @@ const learningSkipKey='aquawindow.experiment.learning-skips.v1';
 function savedLearning():Record<string,LearningRecord[]>{try{return JSON.parse(localStorage.getItem(learningKey)??'{}')}catch{return {}}}
 function savedSkips():Record<string,{skippedAt:string;completedQuestions:number}>{try{return JSON.parse(localStorage.getItem(learningSkipKey)??'{}')}catch{return {}}}
 export const learningHistory=createStore({byParticipant:savedLearning(),skips:savedSkips()});
-export const onboarding=createStore({stage:'profile' as 'profile'|'practice'|'assessment'|'passed'|'ready',name:'',studentId:'',question:0,records:[] as LearningRecord[],masterySkipped:false,testMode:false});
+const profileKey='aquawindow.experiment.last-profile.v1';
+function savedProfile(){
+ try{const value=JSON.parse(localStorage.getItem(profileKey)??'null');return {name:typeof value?.name==='string'?value.name:'',studentId:typeof value?.studentId==='string'?value.studentId:''};}catch{return {name:'',studentId:''};}
+}
+export const onboarding=createStore({stage:'profile' as 'profile'|'practice'|'assessment'|'passed'|'ready',...savedProfile(),question:0,records:[] as LearningRecord[],masterySkipped:false,testMode:false});
+export function rememberParticipantInfo(name:string,studentId:string){
+ onboarding.set({name,studentId});
+ try{localStorage.setItem(profileKey,JSON.stringify({name,studentId}));}catch{/* Keep the form usable if browser storage is unavailable. */}
+}
+export function clearRememberedParticipantInfo(){localStorage.removeItem(profileKey);}
 export function registerParticipant(name:string,studentId:string){
  if(!name.trim()||!studentId.trim())return false;
  ensureAssignment(studentId,name);
@@ -101,7 +110,7 @@ export function submitLearning(answer:string){
  if(q.mode==='figure-pin'&&a){const reader=root(a.id),scroll=reader?.querySelector<HTMLElement>('.study-pdf-scroll'),page=scroll?.querySelector<HTMLElement>('[data-page="4"]'),pin=reader?.querySelector<HTMLElement>('.study-pdf-pin-anchor');success=!!scroll&&!!page&&scroll.scrollTop>=page.offsetTop&&!!pin&&getComputedStyle(pin).visibility==='visible';}
  if(q.mode==='sync-scroll'&&a&&b&&a.group&&a.group===b.group){
   const pair=[a,b].sort((x,y)=>x.rect.x-y.rect.x),positions=pair.map(w=>{const scroll=root(w.id)?.querySelector<HTMLElement>('.study-pdf-scroll'),page=scroll?.querySelector<HTMLElement>('[data-page="3"]');return scroll&&page?(scroll.scrollTop-page.offsetTop)/page.offsetHeight:-10;});
-  success=positions[0]>=0&&Math.abs(positions[0]-positions[1])<.08&&logStore.get().records.some(r=>r.type==='pdf.sync-scroll'&&r.windowId===pair[0].id&&r.t>=trial!.started);
+  success=positions[0]>=0&&Math.abs(positions[0]-positions[1])<.08&&logStore.get().records.some(r=>r.type==='pdf.sync-scroll'&&pair.some(win=>win.id===r.windowId)&&r.t>=trial!.started);
  }
  if(!success)return false;
  const state=onboarding.get(),records=[...state.records,{mode:q.mode,seconds:+((performance.now()-trial.started)/1000).toFixed(2),attempts:trial.attempts,passedAt:new Date().toISOString()}];

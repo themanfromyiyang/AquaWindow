@@ -127,6 +127,15 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #638b9c;out
 .experiment-eligibility-options input{flex:none;margin:1px 0 0;accent-color:#6d9ba9;}
 .experiment-eligibility-options label:has(input:disabled){opacity:.62;}
 .experiment-question-sets{display:grid;gap:10px;padding:12px;border-top:1px solid #edf1f4;}
+.experiment-question-sets[hidden]{display:none;}
+.experiment-question-sets details.experiment-question-set{display:block;padding:0;}
+.experiment-question-sets .experiment-question-set>summary{display:list-item;list-style:disclosure-closed inside;padding:12px;color:#45616f;font-size:12px;font-weight:600;cursor:pointer;}
+.experiment-question-sets .experiment-question-set[open]>summary{list-style-type:disclosure-open;border-bottom:1px solid #e2e9ed;}
+.experiment-question-set-content{display:grid;gap:14px;padding:12px;}
+.experiment-question-set:not([open])>.experiment-question-set-content{display:none;}
+.experiment-question-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;padding:11px 14px;border-top:1px solid #edf1f4;color:#526d7b;background:#f8fafb;font-size:12px;text-align:left;cursor:pointer;}
+.experiment-question-toggle:hover{background:#eef4f6;}
+.experiment-question-toggle:focus-visible{outline:2px solid #8aaab9;outline-offset:-3px;}
 .experiment-question-sets>p{margin:0;color:#718692;font-size:11px;line-height:1.5;}
 .experiment-question-set{display:grid;gap:9px;padding:11px;border:1px solid #e2e9ed;border-radius:9px;background:#f9fbfc;}
 .experiment-question-set strong{font-size:12px;color:#45616f;}
@@ -136,6 +145,8 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #638b9c;out
 .experiment-paper-sequence{display:grid;gap:4px;min-width:140px;white-space:normal;}
 .experiment-paper-sequence span{color:#486572;font-size:11px;}
 .study-condition-progress{color:#6d8794;font-size:12px;}
+.experiment-app .study-task-details .study-current-technique{margin:4px 0 6px;color:#456674;font-size:17px;font-weight:600;line-height:1.5;}
+.experiment-app .study-task-details .study-condition-progress{margin:0 0 20px;}
 .study-question-prompt{padding:14px 0;border-top:1px solid #e2e9ed;color:#344e5e;font-size:14px!important;line-height:1.75!important;white-space:pre-wrap;}
 .study-response-label{display:grid;gap:7px;color:#637b88;font-size:12px;}
 .experiment-rebuild{width:100%;margin-top:10px;padding:10px;border:1px solid #d8e3e8;border-radius:8px;background:#f5f9fa;color:#426575;font-size:11px;}
@@ -178,14 +189,14 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #638b9c;out
 .experiment-survey-launch{width:100%;margin-top:16px;padding:12px 14px;border:1px solid #d9e5e9;border-radius:10px;background:#f2f8fa;color:#406273;text-align:left;font-size:12px;}
 .experiment-survey header{display:flex;align-items:center;gap:12px;padding:18px 22px 12px;border-bottom:1px solid #e6edf0;color:#5e7581;font-size:12px;}
 .experiment-survey header button{width:28px;height:28px;border-radius:8px;font-size:24px;line-height:1;}
-.experiment-survey-body{padding:20px 22px 28px;}
+.experiment-survey-body{box-sizing:border-box;display:flex;flex-direction:column;width:100%;max-width:760px;margin:0 auto;padding:20px 22px 28px;}
 .experiment-survey-body h1{margin:0 0 8px;color:#314957;font-size:21px;font-weight:600;}
 .experiment-survey-progress,.experiment-survey-guide{margin:0;color:#728894;font-size:12px;line-height:1.7;}
 .experiment-survey-guide{margin-top:12px;}
-.experiment-survey-section{margin-top:26px;}
+.experiment-survey-section{display:block;width:100%;margin-top:26px;}
 .experiment-survey-section h2{margin:0 0 18px;color:#455e6b;font-size:14px;font-weight:600;}
-.experiment-survey-item{min-width:0;margin:0 0 22px;padding:0 0 20px;border:0;border-bottom:1px solid #e5ecef;}
-.experiment-survey-item legend{padding:0;margin-bottom:14px;color:#344d5c;font-size:13px;line-height:1.7;}
+.experiment-survey-item{box-sizing:border-box;width:100%;min-width:0;margin:0 0 20px;padding:0 0 18px;border:0;border-bottom:1px solid #e5ecef;}
+.experiment-survey-item legend{padding:0;margin-bottom:10px;color:#344d5c;font-size:13px;line-height:1.7;}
 .experiment-survey-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
 .experiment-survey-options label{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;color:#738591;font-size:10px;text-align:center;line-height:1.5;}
 .experiment-survey-options input{position:absolute;width:1px;height:1px;opacity:0;}
@@ -215,3 +226,5 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #638b9c;out
 .experiment-survey-detail ol{min-width:240px;padding-left:20px;}
 .experiment-survey-detail li{margin:8px 0;line-height:1.6;}
 .experiment-survey-detail strong{display:block;font-weight:500;color:#527889;}
+.study-video-source { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; color: #526773; background: #f4f8fa; font-size: 12px; }
+.study-video-source a { flex-shrink: 0; color: #426a7c; }
