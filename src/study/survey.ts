@@ -1,5 +1,7 @@
 import {createStore} from '../system/createStore';
-import {paperModeOptions} from './assignments';
+import {paperModeOptions,assignmentStore,assignmentFor,paperSetIndex,type AssignedPaperMode} from './assignments';
+import {questionsPerSet} from './paperQuestions';
+import type {StudyTaskId} from './tasks';
 import type {ExperimentRecord} from './flow';
 import {fileLayoutModes,type StudyEnvironment} from './workspaces';
 
@@ -35,12 +37,22 @@ function load():SurveyResponse[]{
  }catch{return []}
 }
 export const surveyStore=createStore<{responses:SurveyResponse[]}>({responses:load()});
-export function surveyTargets(records:ExperimentRecord[],participant:string,completed:StudyEnvironment[]):SurveyTarget[]{
+export function surveyTargets(records:ExperimentRecord[],participant:string,environments:StudyEnvironment[]=['paper','files']):SurveyTarget[]{
  const seen=new Set<string>(),targets:SurveyTarget[]=[];
+ const assignment=assignmentFor(participant),eligibility=assignmentStore.get().eligibility;
  for(const record of records){
-  if(record.participant!==participant||!completed.includes(record.environment)||!record.technique||record.technique==='standard')continue;
+  if(record.participant!==participant||!environments.includes(record.environment)||!record.technique||record.technique==='standard')continue;
   const key=`${record.environment}:${record.technique}`;
   if(seen.has(key))continue;
+  const requiredTasks=record.environment==='paper'
+   ?Object.entries(eligibility.paper).filter(([,modes])=>modes.includes(record.technique as AssignedPaperMode)).map(([task])=>task)
+   :Object.entries(assignment?.files??{}).filter(([,mode])=>mode===record.technique).map(([task])=>task);
+  if(!requiredTasks.length||!requiredTasks.every(task=>{
+   const matching=records.filter(item=>item.participant===participant&&item.environment===record.environment&&item.technique===record.technique&&item.task===task);
+   if(record.environment==='files')return matching.length>0;
+   const setIndex=assignment?paperSetIndex(task as StudyTaskId,record.technique as AssignedPaperMode,assignment.group):undefined;
+   return Array.from({length:questionsPerSet},(_,index)=>index).every(index=>matching.some(item=>item.questionIndex===index&&(setIndex===undefined||item.questionSet===setIndex)));
+  }))continue;
   const label=record.environment==='paper'?paperModeOptions.find(mode=>mode.id===record.technique)?.label:fileLayoutModes.find(mode=>mode.id===record.technique)?.label;
   if(!label)continue;
   seen.add(key);targets.push({key,environment:record.environment,technique:record.technique,label});

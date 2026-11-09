@@ -4,7 +4,7 @@ import {ui} from '../system/ui';
 import {TaskCard} from '../study/TaskCard';
 import {experimentFlow,chooseExperiment,exportExperiment,paperLevels,activateParticipant,jumpToTask,previousPaperQuestion} from '../study/flow';
 import {studyTasks} from '../study/tasks';
-import {fileTasks,type StudyEnvironment} from '../study/workspaces';
+import {fileTasks} from '../study/workspaces';
 import {DesktopAppIcon} from '../shell/DesktopAppIcon';
 import {onboarding} from '../study/onboarding';
 import ExperimentOnboarding from './ExperimentOnboarding';
@@ -17,8 +17,7 @@ export default function Experiment(){
  useStore(surveyStore,s=>s.responses);
  const [showManager,setShowManager]=useState(false);
  useEffect(()=>{if(enrollment.stage==='ready')activateParticipant(enrollment.studentId);},[enrollment.stage,enrollment.studentId]);
- const completedEnvironments:StudyEnvironment[]=[...(flow.levels.paper>=paperLevels.length?['paper' as const]:[]),...(flow.levels.files>=fileTasks.length?['files' as const]:[])];
- const targets=enrollment.testMode?[]:surveyTargets(flow.records,enrollment.studentId,completedEnvironments);
+ const targets=enrollment.testMode?[]:surveyTargets(flow.records,enrollment.studentId);
  const pendingTargets=targets.filter(target=>!surveyComplete(enrollment.studentId,target.key));
  const returnToHub=()=>experimentFlow.set({view:'hub'});
  if(enrollment.stage!=='ready')return showManager?<ExperimentManager onClose={()=>setShowManager(false)}/>:<ExperimentOnboarding onOpenManager={()=>setShowManager(true)}/>;
@@ -29,6 +28,7 @@ export default function Experiment(){
   <button onClick={()=>chooseExperiment('files')}><DesktopAppIcon id="finder"/><strong>文件管理</strong><span>{flow.levels.files>=fileTasks.length?'已完成':flow.levels.files?`继续第 ${flow.levels.files+1} 题`:'查找、核对与选择'}</span></button>
   <button onClick={()=>setShowManager(true)}><DesktopAppIcon id="experiment"/><strong>实验管理</strong><span>交互分配与数据</span></button>
  </div>{pendingTargets.length>0&&<button className="experiment-survey-launch" onClick={()=>experimentFlow.set({view:'survey'})}>继续填写交互体验量表 · {pendingTargets.length} 种形式</button>}{!enrollment.testMode&&flow.records.length>0&&<button className="experiment-export" onClick={exportExperiment}>导出当前被试记录</button>}</div>;
+ if(flow.view==='level'&&pendingTargets.length>0)return <ExperimentSurvey participant={enrollment.studentId} targets={pendingTargets} onBack={returnToHub}/>;
  if(flow.view==='survey'||flow.view==='complete'&&pendingTargets.length>0)return <>{previousButton}<ExperimentSurvey participant={enrollment.studentId} targets={targets} onBack={returnToHub}/></>;
  if(flow.view==='complete')return <div className="experiment-app experiment-complete"><span className="level-complete-mark">✓</span><h1>本轮已完成</h1>{previousButton}<button className="experiment-primary" onClick={()=>experimentFlow.set({view:'hub'})}>返回实验</button>{!enrollment.testMode&&<button className="experiment-export" onClick={exportExperiment}>导出记录</button>}</div>;
  const count=environment==='paper'?paperLevels.length:fileTasks.length;

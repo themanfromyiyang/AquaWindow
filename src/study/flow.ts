@@ -112,14 +112,28 @@ export function finishLevel(selfReported=true){
  if(ui.get().studyEnvironment==='paper'){finishPaperQuestion();return;}
  if(!canEnterExperiment())return;
  const state=experimentFlow.get(),index=state.levels.files;
- if(state.view!=='level'||!fileTaskStore.get().submitted)return;
+ if(state.view!=='level'||!fileTaskStore.get().submitted||fileTaskStore.get().current!==fileTasks[index]?.id)return;
  const record:ExperimentRecord={participant:onboarding.get().studentId,environment:'files',stage:index+1,task:fileTaskStore.get().current,technique:fileTaskStore.get().layoutMode,seconds:fileTaskStore.get().results.at(-1)?.seconds??0,selfReported,events:logStore.get().records.filter(event=>event.t>=state.startedAt)};
  const count=fileTasks.length,records=onboarding.get().testMode?state.records:[...state.records,record];
  experimentFlow.set({stageRunning:false,records,levels:{...state.levels,files:index+1},view:index+1>=count?'complete':'level',startedAt:performance.now(),logStart:logStore.get().records.length});
  if(!onboarding.get().testMode)localStorage.setItem(recordsKey,JSON.stringify(records));
  log({src:'study',type:'stage.complete',data:{...record,events:record.events.length}});
  if(index+1<count){openFileTask(fileTasks[index+1].id);applyAssignedMode('files',index+1);}
+ if(kernel.get('experiment'))kernel.restore('experiment','system');
 }
+// Advance only after the document handler has finished persisting its result.
+let fileSubmissionPending=false;
+fileTaskStore.subscribe(()=>{
+ const state=fileTaskStore.get();
+ if(!state.submitted||fileSubmissionPending||ui.get().studyEnvironment!=='files')return;
+ const task=state.current,startedAt=state.startedAt;
+ fileSubmissionPending=true;
+ queueMicrotask(()=>{
+  fileSubmissionPending=false;
+  const current=fileTaskStore.get();
+  if(ui.get().studyEnvironment==='files'&&current.submitted&&current.current===task&&current.startedAt===startedAt)finishLevel(false);
+ });
+});
 export function exportExperiment(){
  const enrollment=onboarding.get();
  const payload={version:5,surveyDefinition:{scale:surveyScale,susQuestionCount,questions:surveyQuestions},surveys:surveyStore.get().responses.filter(response=>response.participant===enrollment.studentId),participant:enrollment.studentId,participantInfo:{name:enrollment.name,studentId:enrollment.studentId},assignment:assignmentFor(enrollment.studentId),eligibility:assignmentStore.get().eligibility,learningResults:learningHistory.get().byParticipant[enrollment.studentId]??enrollment.records,learningSkip:learningHistory.get().skips[enrollment.studentId]??null,stages:experimentFlow.get().records.filter(record=>record.participant===enrollment.studentId),fileResults:fileTaskStore.get().results.filter(result=>result.participant===enrollment.studentId)};
