@@ -180,18 +180,22 @@ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #638b9c;out
 .experiment-survey header button{width:28px;height:28px;border-radius:8px;font-size:24px;line-height:1;}
 .experiment-survey-body{padding:20px 22px 28px;}
 .experiment-survey-body h1{margin:0 0 8px;color:#314957;font-size:21px;font-weight:600;}
-.experiment-survey-progress,.experiment-survey-section{margin:0;color:#728894;font-size:11px;line-height:1.6;}
-.experiment-survey-section{margin-top:24px;}
-.experiment-survey-question{margin:8px 0 16px;color:#344d5c;font-size:15px;line-height:1.7;}
-.experiment-survey-options{display:grid;gap:7px;}
-.experiment-survey-options label{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e0e8ec;border-radius:9px;background:#fff;color:#526b78;font-size:12px;cursor:pointer;}
-.experiment-survey-options label.selected{border-color:#9ab9c5;background:#f1f8fa;}
-.experiment-survey-options input{accent-color:#739dad;}
-.experiment-survey-options strong{min-width:18px;color:#375a6b;font-weight:600;}
-.experiment-survey-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;}
-.experiment-survey-actions>button:first-child{padding:10px 0;color:#657d89;font-size:12px;}
-.experiment-survey-actions>button:first-child:disabled{opacity:.4;}
+.experiment-survey-progress,.experiment-survey-guide{margin:0;color:#728894;font-size:12px;line-height:1.7;}
+.experiment-survey-guide{margin-top:12px;}
+.experiment-survey-section{margin-top:26px;}
+.experiment-survey-section h2{margin:0 0 18px;color:#455e6b;font-size:14px;font-weight:600;}
+.experiment-survey-item{min-width:0;margin:0 0 22px;padding:0 0 20px;border:0;border-bottom:1px solid #e5ecef;}
+.experiment-survey-item legend{padding:0;margin-bottom:14px;color:#344d5c;font-size:13px;line-height:1.7;}
+.experiment-survey-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
+.experiment-survey-options label{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;color:#738591;font-size:10px;text-align:center;line-height:1.5;}
+.experiment-survey-options input{position:absolute;width:1px;height:1px;opacity:0;}
+.experiment-survey-options .experiment-survey-circle{box-sizing:border-box;display:grid;place-items:center;width:36px;height:36px;border:1px solid #cddbe2;border-radius:50%;background:#fff;color:#526c79;font-size:13px;transition:background .15s,border-color .15s;}
+.experiment-survey-options label:hover .experiment-survey-circle{border-color:#8ba8b4;background:#f0f6f8;}
+.experiment-survey-options input:checked+.experiment-survey-circle{background:#5d7f8e;border-color:#5d7f8e;color:#fff;}
+.experiment-survey-options input:focus-visible+.experiment-survey-circle{outline:2px solid #6c94a5;outline-offset:3px;}
+.experiment-survey-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px;color:#728894;font-size:11px;}
 .experiment-survey-actions .experiment-primary{margin-top:0;}
+
 
 .experiment-clear-data{margin:14px 0 20px;padding:12px;border:1px solid #e2e9ed;border-radius:10px;background:#fff;}
 .experiment-clear-data>button{padding:8px 10px;border:1px solid #d8e3e8;border-radius:8px;background:#f7f9fa;color:#566d79;font-size:11px;}

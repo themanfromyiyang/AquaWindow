@@ -21,22 +21,20 @@ try{
   ]});
  });
  assert.match(await page.locator('.experiment-survey').innerText(),/掀角查看/);
- assert.equal(await page.getByRole('button',{name:'下一题'}).isDisabled(),true);
- await page.locator('.experiment-survey-options label').nth(3).click();
- await page.getByRole('button',{name:'下一题'}).click();
+ assert.equal(await page.locator('.experiment-survey-item').count(),14);
+ assert.equal(await page.getByRole('button',{name:'提交本形式'}).isDisabled(),true);
+ await page.locator('.experiment-survey-item').first().locator('label').nth(3).click();
  await page.getByRole('button',{name:'返回实验'}).click();
- assert.match(await page.locator('.experiment-survey-launch').innerText(),/2 种形式/);
  await page.locator('.experiment-survey-launch').click();
- assert.match(await page.locator('.experiment-survey-progress').innerText(),/题目 2\/14/);
- for(let item=1;item<14;item++){
-  await page.locator('.experiment-survey-options label').nth(3).click();
-  await page.getByRole('button',{name:item===13?'提交本形式':'下一题'}).click();
- }
+ assert.match(await page.locator('.experiment-survey-progress').innerText(),/已答 1\/14/);
+ const circles=await page.locator('.experiment-survey-item').first().locator('.experiment-survey-circle').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};}));
+ assert.ok(circles.every(circle=>circle.y===circles[0].y&&circle.width===circle.height));
+ for(let item=1;item<14;item++)await page.locator('.experiment-survey-item').nth(item).locator('label').nth(3).click();
+ await page.getByRole('button',{name:'提交本形式'}).click();
  assert.match(await page.locator('.experiment-survey').innerText(),/并列呈现/);
- for(let item=0;item<14;item++){
-  await page.locator('.experiment-survey-options label').nth(2).click();
-  await page.getByRole('button',{name:item===13?'提交本形式':'下一题'}).click();
- }
+ assert.equal(await page.locator('.experiment-survey').evaluate(node=>node.scrollTop),0);
+ for(let item=0;item<14;item++)await page.locator('.experiment-survey-item').nth(item).locator('label').nth(2).click();
+ await page.getByRole('button',{name:'提交本形式'}).click();
  assert.equal(await page.getByRole('heading',{name:'量表已完成'}).count(),1);
  const responses=await page.evaluate(()=>JSON.parse(localStorage.getItem('aquawindow.experiment.surveys.v1')??'[]'));
  assert.deepEqual(responses.map(item=>[item.key,item.answers.length,!!item.submittedAt]),[['paper:peel',14,true],['files:parallel',14,true]]);
@@ -45,6 +43,7 @@ try{
  await page.getByRole('button',{name:'返回实验'}).click();
  await page.getByRole('button',{name:/实验管理/}).click();
  await page.getByRole('button',{name:'收集数据'}).click();
+ await page.locator('[data-participant="SURVEY-001"] > summary').click();
  assert.equal(await page.locator('.experiment-data-table').filter({has:page.getByRole('columnheader',{name:'进度'})}).locator('tbody tr').count(),2);
  const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'导出全部数据'}).click()]);
  const exported=JSON.parse(await readFile(await download.path(),'utf8'));
